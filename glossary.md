@@ -1,0 +1,9 @@
+---
+title: Glossary
+category: 8. Glossary
+order: 1
+---
+
+- Associated Register: ...
+- Authorization Register: ...
+- Delegation Evidence: ...

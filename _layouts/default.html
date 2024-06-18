@@ -7,13 +7,12 @@
 {% seo %}
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
     <script src="https://code.jquery.com/jquery-3.3.0.min.js" integrity="sha256-RTQy8VOmNlT6b2PIRur37p6JEBZUE7o8wPgMvu18MC4=" crossorigin="anonymous"></script>
-    <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
+    <script src="{{ '/scripts/main.js' | relative_url }}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
     {% include head-custom.html %}
   </head>
   <body>
-
       <header>
         <h1>{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
         <p>{{ page.description | default: site.description | default: site.github.project_tagline }}</p>
@@ -21,26 +20,27 @@
 
       <div id="banner">
         <span id="logo"></span>
-
-        <a href="{{ site.github.repository_url }}" class="button fork"></a>
       </div><!-- end banner -->
 
     <div class="wrapper">
+      <h1>version 1.3</h1>
       <nav>
+        {% assign mypages = site.pages | sort: "category" | group_by: 'category' %}
         <ul>
-        </ul>
-      </nav>
+        {% for cat in mypages %}
+          {% if cat.name != "" %}
+            <div>&nbsp;</div>
+            {% assign items = cat.items | sort: 'order' %}
+            {% for item in items %}
+              <li><a href="{{ item.url |relative_url }}">{{ item.title }}</a></li>
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
       <section>
         {{ content }}
-
       </section>
-      <footer>
-        {% if site.github.is_project_page %}
-          <p>Project maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a></p>
-        {% endif %}
-        <p><small>Hosted on GitHub Pages &mdash; </small></p>
-        <!-- Theme by mattgraham https://twitter.com/mattgraham -->
-      </footer>
     </div>
   </body>
 </html>
