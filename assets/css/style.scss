@@ -2,7 +2,6 @@
 ---
 
 body {
-  min-height: 100vh;
   margin: 0;
 }
 
@@ -14,18 +13,6 @@ header {
 footer {
   min-height: 50px;
   background: PapayaWhip;
-}
-
-
-/* The article fills all the space between header & footer */
-
-body {
-  display: flex;
-  flex-direction: column;
-}
-
-main {
-  flex: 1;
 }
 
 @import "{{ site.theme }}";
