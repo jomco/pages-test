@@ -15,4 +15,22 @@ footer {
   background: PapayaWhip;
 }
 
+nav ul div {
+  line-height: 8px
+}
+
+nav ul li {
+  list-style-type: none;
+}
+
+nav ul li a {
+  color: white;
+  font-size: 14px;
+}
+
+nav ul li a.todo {
+  color: pink;
+  font-size: 14px;
+}
+
 @import "{{ site.theme }}";
