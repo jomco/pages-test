@@ -8,7 +8,7 @@ What is needed to write a client?
 A client will need to make a series of http calls.
 They might need a certificate and/or a form of credentials.
 They will need the following information:
-- the URL and id of the association register
+- the URL and id of the association registry
 - a certificate chain plus a private key
 - you need to know the api of the resource you want to access and be able to create a resource request
 
@@ -16,7 +16,7 @@ If you have all that, then you're ready to make the calls. In total you'll need 
 
 The first call to each entity is always to request a token. To request a token, you will need an ID and a URL for each service. You'll pass in a client assertion, which is a JWT token, containing your own ID, the ID of the target, the certificate chain, and you'll sign it with your private key. In return you'll get a token which you can use for the second call to the service.
 
-The second call to the association registry will fetch information about the parties that your interested in, including name, id, status (whether they're active), the URL, and also a list of authorization registers with similar information. You should pass in your token and the id of the resource you're interested in.
+The second call to the association registry will fetch information about the parties that your interested in, including name, id, status (whether they're active), the URL, and also a list of authorization registries with similar information. You should pass in your token and the id of the resource you're interested in.
 
 After you've received the party information, it's time to talk to the second entity, the authorization registry. You can extract its id and URL from the party data object. First you'll request a token, but now with a client assertion with the authorization registry as its audience. With the token you can now call it again to request the delegation evidence, but you'll also need to pass in the delegation mask, which is a description in JSON format of the permissions you'll need to make the resource request. You'll receive a delegation evidence JWT object in return, which contains a JSON object.
 

@@ -12,26 +12,41 @@
 
     .content {
       margin-bottom: 20px;
-      padding: 0px 50px 0 50px !important;
+      padding: 10px 50px 0 50px !important;
+
+      p {
+        margin-bottom: 10px;
+      }
+
+      p,ol li,ul li {
+        font-size: 14px;
+      }
     }
 
-    nav ul div {
-      line-height: 8px
+    nav ul {
+      padding-top: 0;
+
+      div {
+        line-height: 12px
+      }
+
+      li {
+        list-style-type: none;
+      }
+
+      li a {
+        color: white;
+        font-size: 14px;
+        line-height: 1.2;
+      }
+
+      li a.todo {
+        color: pink;
+        font-size: 14px;
+      }
+
     }
 
-    nav ul li {
-      list-style-type: none;
-    }
-
-    nav ul li a {
-      color: white;
-      font-size: 14px;
-    }
-
-    nav ul li a.todo {
-      color: pink;
-      font-size: 14px;
-    }
 
   </style>
   <link rel="stylesheet" id="parent-style-css" href="https://dev.bdinetwork.org/wp-content/themes/minimal210/style.css" type="text/css" media="all">
@@ -74,7 +89,7 @@
                 </ul>
               </nav>
             </div>
-            <div class="blocks-group right-group">
+            <div class="blocks-group right-group" style="width: 600px">
               <div data-attribute="0" class="file active">
                 <article>
                   <div>
