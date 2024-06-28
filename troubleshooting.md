@@ -4,21 +4,25 @@ category: 9. Troubleshooting
 order: 1
 ---
 
-What kind of problems do we want to address here?
-Presumably only problems with the software components that we'll deliver.
+Problems while using the components (Association Registry and Authorization Registry) provided on this site.
+
+#### Basic Flow
+
 The basic flow that should be supported is this:
 
-Developer implements resource, configures and runs AssoReg and AuthoReg
+Developer implements resource, configures and runs Association Registry and Authorization Registry
 To test resource, developer:
-- calls AssoReg
-- calls AuthoReg
+- calls Association Registry
+- calls Authorization Registry
 - calls Resource
 
+#### Types Of Problems
+
 So troubleshooting might involve:
-- AssoReg doesn't start up correctly
-- problems making a call to AssoReg
-- problems with AssoReg's response
-- AuthoReg doesn't start up correctly
-- problems making a call to AuthoReg
-- problems with AuthoReg's response
-- problems with developing Resource to handle AuthoReg's response
+- Association Registry doesn't start up correctly
+- problems making a call to Association Registry
+- problems with Association Registry's response
+- Authorization Registry doesn't start up correctly
+- problems making a call to Authorization Registry
+- problems with Authorization Registry's response
+- problems with developing Resource to handle Authorization Registry's response

@@ -12,15 +12,16 @@ With this token, clients may use the API of the Association Registry. Using the 
 
 ##### Core Functions of the Association Registry
 
-1. Compliance Status Management:
-  - Compliance Status: Tracks whether a participant meets the required standards and protocols set by iSHARE.
-  - Validity Period: Indicates the time frame during which the compliance status is valid. This helps ensure that participants are regularly reviewed and re-validated.
+###### Compliance Status Management
 
-1. Participant Endpoints:
-  - Stores the endpoint information of each participant, enabling other participants to discover and interact with them directly.
+- Compliance Status: Tracks whether a participant meets the required standards and protocols set by iSHARE.
+- Validity Period: Indicates the time frame during which the compliance status is valid. This helps ensure that participants are regularly reviewed and re-validated.
 
-1. Authorization Registry References:
-  - Lists the Authorization Registries associated with each participant. These registries manage detailed access control policies and permissions for data sharing.
+###### Participant Endpoints
+- Stores the endpoint information of each participant, enabling other participants to discover and interact with them directly.
 
-1. Legal and Contractual Information:
-  - Contains agreements and legal documents that outline the terms of participation and data sharing. This ensures transparency and legal compliance among participants.
+###### Authorization Registry References
+- Lists the Authorization Registries associated with each participant. These registries manage detailed access control policies and permissions for data sharing.
+
+###### Legal and Contractual Information
+- Contains agreements and legal documents that outline the terms of participation and data sharing. This ensures transparency and legal compliance among participants.
