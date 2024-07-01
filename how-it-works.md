@@ -1,7 +1,7 @@
 ---
 title: How It Works
 category: 2. Getting Started
-order: 1
+order: 3
 ---
 
 The Basic Data Infrastructure (BDI) is a system designed to help different organizations share data safely and efficiently. Think of it as a giant, organized library where various entities, like businesses and government agencies, can store their data and also access data from others. This library has strict rules to make sure that only the right people can access the right data, ensuring that everything stays secure and private.

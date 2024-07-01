@@ -1,7 +1,7 @@
 ---
 title: Getting Started
 category: 2. Getting Started
-order: 1
+order: 2
 ---
 
 Getting started with BDI

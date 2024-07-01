@@ -1,6 +1,6 @@
 ---
 title: Writing a client
-category: 5. Writing a client
+category: 6. Writing a client
 order: 1
 ---
 
