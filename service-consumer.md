@@ -4,7 +4,32 @@ category: 4. Components
 order: 5
 ---
 
-A Service Consumer wishes to access a service of a certain Service Provider. This is what is necessary, and we'll show the prerequisites of each step.
+A Service Consumer wishes to access a service of a certain Service Provider. There are two ways in which Service Providers can be implemented: the minimal implementation and the full implementation.
+
+### Minimal Implementation
+
+The minimal implementation is simple to implement for the Service Consumer, but hard for the Service Provider. The responsibility to call the Authorization Registry falls on the Service Provider, instead of the consumer.
+
+##### Gather Required Data
+
+Before starting, the Service Consumer will need the following data:
+
+- Their own ID
+- A key pair
+- A certificate for that key pair issued by a certificate authority supported by iSHARE
+- The certificate chain
+- The ID of the Service Provider they wish to access
+- The URL of the Service Provider they wish to access
+
+##### Perform Resource Request
+
+In order to access a resource at a Service Provider, the Service Consumer should be familiar with the particular API of the Service Provider, since there is no standard for Service Provider APIs. So the consumer should be able to compose an HTTP request that conforms to the API.
+
+When the consumer has created the HTTP Request, they should add a Bearer Token to the request header. This token proves that the client is who he says he is, and that he is a valid iSHARE participant. To get the Bearer Token, you must perform a token call on the Service Provider, passing a [Client Assertion](glossary.md#client-assertion) to them, which is a statement about your identity signed with your private key, and the resource you wish to access, specified by the ID of the Service Provider.
+
+### Full Implementation
+
+The full implementation is hard for the Service Consumer, but easy for the Service Provider. The responsibility to call the Authorization Registry falls on the Service Consumer, instead of the provider. Here follow the steps necessary for a Service Consumer in order to access a resource at a Service Provider, using the full implementation.
 
 ##### Gather Required Data
 
