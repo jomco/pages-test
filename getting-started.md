@@ -4,7 +4,7 @@ category: 2. Getting Started
 order: 1
 ---
 
-Getting started with iSHARE
+Getting started with BDI
 
 What do you need to get started?
 Certificates, account, access keys
