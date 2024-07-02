@@ -23,13 +23,24 @@
       }
 
       dt {
-        font-family: Poppins;
+        font-family: Helvetica sans-serif;
         font-weight: 500;
+        color: #013A57;
+      }
+
+      table th {
+        color: #013A57;
       }
     }
 
     nav ul {
       padding-top: 0;
+
+      a {
+        color: #000;
+        text-decoration: none;
+      }
+
 
       hr {
         margin-bottom: 0.5em;
@@ -87,7 +98,7 @@
                 <ul>
                 {% for cat in mypages %}
                   {% if cat.name != "" %}
-                    {% if cat.name != "Introduction" %}
+                    {% if cat.name != "1. Introduction" %}
                     <hr></hr>
                     {% endif %}
                     {% assign items = cat.items | sort: 'order' %}
@@ -99,12 +110,12 @@
                 </ul>
               </nav>
             </div>
-            <div class="blocks-group right-group" style="width: 600px">
+            <div class="blocks-group right-group" style="width: {{page.width | 600}}px">
               <div data-attribute="0" class="file active">
                 <article>
                   <div>
                     <div class="content">
-                      <h4>{{ page.title }}</h4>
+                      <h1>{{ page.title }}</h1>
                       {{ content }}
                     </div>
                   </div>

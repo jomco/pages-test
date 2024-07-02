@@ -3,55 +3,56 @@ title: Authorization Registry
 category: 4. Components
 order: 3
 ---
- About the Authorization Registry
+
+### About the Authorization Registry
 
 
 The Authorization Registry in a Data Space, such as the iSHARE Data Space, is a critical component that manages and enforces access control policies. Its core functions revolve around ensuring that data access is granted based on predefined rules and that only authorized participants can access specific data or services. Here are the core functions of the Authorization Registry:
 
-##### Core Functions of the Authorization Registry
+#### Core Functions of the Authorization Registry
 
 
-1. Access Control Policy Management:
+##### Access Control Policy Management:
 
 - Policy Definition: Allows administrators to define access control policies that specify who can access what data and under what conditions.
 - Policy Storage: Securely stores these policies to ensure they are enforced consistently across the Data Space.
 
-1. Authorization Decision Making:
+##### Authorization Decision Making:
 
 - Request Evaluation: Evaluates access requests against the stored policies to determine whether to grant or deny access.
 - Contextual Analysis: Takes into account contextual information such as the time of request, location, and other relevant factors to make nuanced authorization decisions.
 
-1. Authentication Integration:
+##### Authentication Integration:
 
 - Identity Verification: Works in conjunction with identity providers to verify the identities of participants making access requests.
 - Credential Management: Manages the credentials (e.g., tokens, certificates) used for authentication purposes.
 
-1. Delegation of Rights:
+##### Delegation of Rights:
 
 - Delegation Support: Allows data owners to delegate access rights to other participants. This delegation can be temporary or conditional, based on specific criteria.
 - Chaining of Permissions: Supports the chaining of permissions where rights can be delegated through multiple levels of participants.
 
-1. Audit and Compliance:
+##### Audit and Compliance:
 
 - Logging: Maintains detailed logs of all access requests and authorization decisions. This includes who accessed what data, when, and under what policies.
 - Compliance Reporting: Provides reports and insights to ensure compliance with regulatory requirements and internal policies.
 
-1. Interoperability and Standards:
+##### Interoperability and Standards:
 
 - Standard Protocols: Uses standard protocols (e.g., OAuth, XACML) for authorization to ensure interoperability between different systems and services within the Data Space.
 - Integration Support: Facilitates integration with other components such as Association Registries, identity providers, and data services.
 
-1. Scalability and Performance:
+##### Scalability and Performance:
 
 - Efficient Processing: Ensures that authorization decisions are made quickly to support real-time data access needs.
 - Scalable Architecture: Designed to handle a large number of authorization requests and policies, ensuring performance even as the Data Space grows.
 
-1. User and Role Management:
+##### User and Role Management:
 
 Role-Based Access Control (RBAC): Supports RBAC, allowing policies to be defined based on user roles rather than individual users.
 Dynamic Roles: Allows for dynamic assignment of roles based on context and changing conditions.
 
-##### Main API Call
+#### Main API Call
 
 The main API-call of the Authorization Registry is the `/delegation` call. It is used to pass a delegation mask, or delegation request, to the AR, and to receive a Delegation Evidence, a JWT, in response. A Delegation Mask contains an issuer and a target, and a set of policies. Each policy contains (desired) rules (e.g. "Effect: permit"), and a target. The target contains a resource, an environment, and a list of actions (e.g. create, read, update, delete). Together, the policies represent the right to take specified actions on a specified set of resources.
 
