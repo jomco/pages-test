@@ -51,6 +51,68 @@ function createClientAssertion(token) {
   })
 };
 
+// Convert base64 encoded certificate to pem format.
+function x5cToPem(x5cCert) {
+  const certDer = Buffer.from(x5cCert, 'base64');
+  const certAsn1 = forge.asn1.fromDer(certDer.toString('binary'));
+  const certPki = forge.pki.certificateFromAsn1(certAsn1);
+  return forge.pki.certificateToPem(certPki);
+}
+
+function checkAdherence(adh) {
+  if (adh['status'] !== 'Active') {
+    throw new Error("Status is not Active");
+  }
+  let now = new Date();
+  if (new Date(adh['start_date']) > now) {
+    throw new Error("Start date is set in future");
+  }
+  if (new Date(adh['end_date']) < now) {
+    throw new Error("End date is set in past");
+  }
+}
+
+function validateCertificateChain(certificates) {
+  try {
+    for (let i = 0; i < certificates.length - 1; i++) {
+      const subjectCert = certificates[i];
+      const issuerCert = certificates[i + 1];
+
+      // Create a CA store with just the issuer certificate
+      const caStore = forge.pki.createCaStore([issuerCert]);
+
+      // Verify the current certificate against the issuer
+      const isValid = forge.pki.verifyCertificateChain(caStore, [subjectCert]);
+      if (!isValid) {
+        console.error(`Certificate ${i} failed to validate against its issuer.`);
+        return false;
+      }
+    }
+
+    // Optionally, verify that the root certificate is self-signed
+    const rootCert = certificates[certificates.length - 1];
+    if (!rootCert.verify(rootCert)) {
+      console.error('Root certificate is not self-signed.');
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Error during certificate chain validation:', err.message);
+    return false;
+  }
+}
+
+try {
+  const isValid = validateCertificateChain(certificates);
+  if (isValid) {
+    console.log('Certificate chain is valid.');
+  } else {
+    console.error('Certificate chain validation failed.');
+  }
+} catch (err) {
+  console.error('Error during validation:', err.message);
+}
 
 // After a user has made a http request for the token, extract the client assertion and call this function.
 // This function will either return a bearer authorization token that can be used once
@@ -61,12 +123,37 @@ async function token(clientAssertionJWT) {
   const header = decodedJWT['header'];
   const payload = decodedJWT['payload'];
   const x5c = header["x5c"];
-  const issuer = payload["iss"];
+  const clientId = payload["iss"];
 
+  // validate the client assertion (is it addressed to us? it is not expired?)
+  const audience = payload["aud"];
+  const jwtCreatedAt = new Date(1000 * payload["iat"]);
+  const jwtExpiresAt = new Date(1000 * payload["exp"]);
+  const now = new Date();
+  if (jwtCreatedAt > now) {
+    throw new Error("iat value set in future");
+  }
+  if (jwtExpiresAt < now) {
+    throw new Error("JWT is expired");
+  }
+
+  if (audience !== YOUR_EORI) {
+    throw new Error('Wrong audience');
+  }
 
   // validate the signature (we check with the first certificate in the x5c chain)
-  // validate the client assertion (is it addressed to us? it is not expired?)
+  jwt.verify(token, x5cToPem(x5c[0]));
+
   // validate the certificate chain (is it a chain? is the CA in our list of accepted associations?)
+  const certs = x5c.map(certBase64 => {
+    const certDer = forge.util.decode64(certBase64);
+    const asn1Obj = forge.asn1.fromDer(certDer);
+    return forge.pki.certificateFromAsn1(asn1Obj);
+  });
+
+  if (!validateCertificateChain(certs)) {
+    throw new Error("Certificate chain invalid");
+  }
 
   // contact the association register to see if the client is still in good standing
 
@@ -91,8 +178,10 @@ async function token(clientAssertionJWT) {
   let partiesResponse = await axios.get(partiesUrlAssoc, { headers: headersParties, params: params });
   let partiesToken = partiesResponse.data['parties_token'];
   const decodedPayload = decodeJWT(partiesToken);
+  // determine if client in good standing
+  // TODO don't take party at index 1
   let party = decodedPayload["payload"]["parties_info"]["data"][1];
-  // TODO determine if client in good standing
+  checkAdherence(party["adherence"]);
 
   // generate a token and store it with the expiration date and the client id
   let token = uuidv4();
