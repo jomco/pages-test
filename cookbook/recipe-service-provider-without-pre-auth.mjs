@@ -15,6 +15,25 @@ const headersTokenCall = { "accept": "application/json", "Content-Type": "applic
 
 let tokenList = {};
 
+// create client assertion with default values
+function createClientAssertion(token) {
+  return new URLSearchParams({
+    "grant_type": "client_credentials",
+    "scope": "iSHARE",
+    "client_id": YOUR_EORI,
+    "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    "client_assertion": token
+  })
+};
+
+// Call /token endpoint and return access_token
+async function accessToken(eori, tokenUrl) {
+  let payload = { "iss": YOUR_EORI, "sub": YOUR_EORI, "aud": eori, "jti": uuidv4() }
+  const token = jwt.sign(payload, pemData, { algorithm: 'RS256', expiresIn: "30s", header: header });
+  response = await axios.post(tokenUrl, createClientAssertion(token), { "accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" })
+  return response.data['access_token'];
+}
+
 // Decode a base64 encoded JWT fragment (header or payload)
 function decodeJWTFragment(fragment) {
   const base64 = fragment.replace(/-/g, '+').replace(/_/g, '/');
@@ -38,18 +57,6 @@ function decodeJWT(token) {
   const payload = decodeJWTFragment(parts[1]);
   return { header, payload };
 }
-
-
-// create client assertion with default values
-function createClientAssertion(token) {
-  return new URLSearchParams({
-    "grant_type": "client_credentials",
-    "scope": "iSHARE",
-    "client_id": YOUR_EORI,
-    "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    "client_assertion": token
-  })
-};
 
 // Convert base64 encoded certificate to pem format.
 function x5cToPem(x5cCert) {
@@ -96,7 +103,14 @@ function validateCertificateChain(certificates) {
       return false;
     }
 
-    return true;
+    let serialNumber = rootCert.serialNumber;
+    let trustedCertificatesSN = ["04b536719019a8b1"];
+    for(i=0; i<trustedCertificatesSN.length; i++) {
+      if(serialNumber === trustedCertificatesSN[i]) {
+        return true;
+      }
+    }
+    return false;
   } catch (err) {
     console.error('Error during certificate chain validation:', err.message);
     return false;
@@ -158,13 +172,11 @@ async function token(clientAssertionJWT) {
   // contact the association register to see if the client is still in good standing
 
   // first, get a token
-  let payloadAssoc = { "iss": YOUR_EORI, "sub": YOUR_EORI, "aud": ASSOC_EORI, "jti": uuidv4() }
-  let response = await axios.post(tokenUrlAssoc, createClientAssertion(signJwt(payloadAssoc)), { headers: headersTokenCall });
-  let accessToken = response.data['access_token'];
+  let bearerToken = accessToken(ASSOC_EORI, tokenUrlAssoc);
 
   // then, make the parties call
 
-  const headersParties = { "accept": "application/json", "Authorization": "Bearer " + accessToken };
+  const headersParties = { "accept": "application/json", "Authorization": "Bearer " + bearerToken };
   // TODO just get the party for the client id
   const params = {
     "active_only": "true",
@@ -175,12 +187,11 @@ async function token(clientAssertionJWT) {
     "page": "1"
   };
 
-  let partiesResponse = await axios.get(partiesUrlAssoc, { headers: headersParties, params: params });
-  let partiesToken = partiesResponse.data['parties_token'];
-  const decodedPayload = decodeJWT(partiesToken);
-  // determine if client in good standing
-  // TODO don't take party at index 1
-  let party = decodedPayload["payload"]["parties_info"]["data"][1];
+  let partiesResponse = await axios.get(partiesUrlAssoc + '/' + clientId, { headers: headersParties, params: params });
+  let partyToken = partiesResponse.data['party_token'];
+  const decodedPayload = decodeJWT(partyToken);
+  let party = decodedPayload["payload"]["party_info"];
+  // check adherence of client
   checkAdherence(party["adherence"]);
 
   // generate a token and store it with the expiration date and the client id
@@ -190,5 +201,12 @@ async function token(clientAssertionJWT) {
 
   // return the token
   return token;
+}
 
+function callApi(token, request) {
+  let clientId = checkToken(token);
+  let delegationMask = createDelegationMask(request);
+  let delegationToken = callDelegation(delegationMask);
+  checkDelegationToken(delegationToken);
+  performApiCall(request);
 }

@@ -7,13 +7,14 @@ import axios from 'axios';
 
 // file paths
 
-const privateKeyPath = '/Users/mdemare/.ssh/EU.EORI.NLFLEXTRANS.pem';
-const certKeyPath = '/Users/mdemare/.ssh/EU.EORI.NLFLEXTRANS.crt';
+const privateKeyPath = process.env.HOME + '/.ssh/EU.EORI.NLFLEXTRANS.pem';
+const certKeyPath = process.env.HOME + '/.ssh/EU.EORI.NLFLEXTRANS.crt';
 
 // credentials
 
-const YOUR_EORI = "EU.EORI.NLFLEXTRANS"
-const THEIR_EORI = "EU.EORI.NLDILSATTEST1"
+const YOUR_EORI = "EU.EORI.NLFLEXTRANS";
+const ASSOC_EORI = "EU.EORI.NLDILSATTEST1";
+const SP_EORI = "EU.EORI.NL809023854";
 const AR_EORI = 'EU.EORI.NL000000004';
 const pemData = fs.readFileSync(privateKeyPath, 'utf8');
 const publicKey = crypto.createPublicKey(pemData);
@@ -31,6 +32,25 @@ const tokenUrlAssoc = "https://dilsat1-mw.pg.bdinetwork.org/connect/token";
 const tokenArUrl = "https://ar.isharetest.net/connect/token";
 const delegationArUrl = "https://ar.isharetest.net/delegation";
 const partiesUrlAssoc = "https://dilsat1-mw.pg.bdinetwork.org/parties";
+
+// create client assertion with default values
+function createClientAssertion(token) {
+  return new URLSearchParams({
+    "grant_type": "client_credentials",
+    "scope": "iSHARE",
+    "client_id": YOUR_EORI,
+    "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    "client_assertion": token
+  })
+};
+
+// Call /token endpoint and return access_token
+async function accessToken(eori, tokenUrl) {
+  let payload = { "iss": YOUR_EORI, "sub": YOUR_EORI, "aud": eori, "jti": uuidv4() }
+  const token = jwt.sign(payload, pemData, { algorithm: 'RS256', expiresIn: "30s", header: header });
+  response = await axios.post(tokenUrl, createClientAssertion(token), { "accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" })
+  return response.data['access_token'];
+}
 
 // sign JWT payload with default settings
 function signJwt(payload) {
@@ -61,40 +81,24 @@ function decodeJWT(token) {
   return JSON.parse(payload);
 }
 
-// create client assertion with default values
-function createClientAssertion(token) {
-  return new URLSearchParams({
-    "grant_type": "client_credentials",
-    "scope": "iSHARE",
-    "client_id": YOUR_EORI,
-    "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    "client_assertion": token
-  })
-};
+function checkAdherence(adh) {
+  if (adh['status'] !== 'Active') {
+    throw new Error("Status is not Active");
+  }
+  let now = new Date();
+  if (new Date(adh['start_date']) > now) {
+    throw new Error("Start date is set in future");
+  }
+  if (new Date(adh['end_date']) < now) {
+    throw new Error("End date is set in past");
+  }
+}
 
-let payload = { "iss": YOUR_EORI, "sub": YOUR_EORI, "aud": THEIR_EORI, "jti": uuidv4() }
-const token = signJwt(payload);
-
-// Headers for the request
-const headers = {
-  "accept": "application/json",
-  "Content-Type": "application/x-www-form-urlencoded"
-};
-
-// Data for the request
-const data = createClientAssertion(token);
-
-let responseData;
-
-// association registry /token
-let response = await axios.post(tokenUrlAssoc, data, { headers })
-console.log(response.status);
-console.log(response.data);
-let accessToken = response.data['access_token'];
+let bearerToken = accessToken(THEIR_EORI, tokenUrlAssoc);
 
 const headersParties = {
   "accept": "application/json",
-  "Authorization": "Bearer " + accessToken
+  "Authorization": "Bearer " + bearerToken
 };
 
 const params = {
@@ -107,39 +111,21 @@ const params = {
 };
 
 // association registry /parties
-response = await axios.get(partiesUrlAssoc, { headers: headersParties, params: params })
-let partiesToken = response.data['parties_token'];
+response = await axios.get(partiesUrlAssoc + '/' + SP_EORI, { headers: headersParties, params: params })
+let partyToken = response.data['party_token'];
 
-const decodedPayload = decodeJWT(partiesToken);
+const decodedPayload = decodeJWT(partyToken);
 console.log(decodedPayload);
-let party = decodedPayload["parties_info"]["data"][1];
+let party = decodedPayload["party_info"];
 console.log(party);
+checkAdherence(party);
 let ar = party["authregistery"][0];
 console.log(ar);
 
-let arPayload = { "iss": YOUR_EORI, "sub": YOUR_EORI, "aud": AR_EORI, "jti": uuidv4() }
+bearerToken = accessToken(AR_EORI, tokenArUrl);
 
-const arToken = jwt.sign(arPayload, pemData, { algorithm: 'RS256', expiresIn: "30s", header: header });
-
-console.log(arToken);
-
-
-// Headers for the request
-const arTokenHeaders = {
-  "accept": "application/json",
-  "Content-Type": "application/x-www-form-urlencoded"
-};
-
-// Data for the request
-const arData = createClientAssertion(arToken);
-
-// authorization registry /token
-response = await axios.post(tokenArUrl, arData, { arTokenHeaders })
-console.log(response.status);
-console.log(response.data);
-accessToken = response.data['access_token'];
 const arHeaders = { "Content-Type": "application/json",
-                    "Authorization": "Bearer " + accessToken }
+                    "Authorization": "Bearer " + bearerToken }
 const policy = {
   "target": {
     "resource": {
@@ -158,3 +144,14 @@ let body = JSON.stringify({"delegationRequest": {
   }})
 // authorization registry /delegation
 response = await axios.post(delegationArUrl, body, { arHeaders });
+let delegationToken = response.data.delegationToken;
+
+bearerToken = accessToken(SP_EORI, tokenSpUrl);
+const headersApi = {
+  "accept": "application/json",
+  "Authorization": "Bearer " + bearerToken,
+  "DelegationEvidence": delegationToken
+};
+
+// Make actual API call with delegation evidence token
+response = await axios.post(spApiUrl, body, headersApi);
